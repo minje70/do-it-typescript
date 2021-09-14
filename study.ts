@@ -1,28 +1,39 @@
-const arrow2 = (a: number, b: number) => {
-	console.log(a);
-	console.log(b);
-};
-
-arrow2(1, 2);
-
-abstract class Animal {
-	constructor(public name?: string, public age?: number) {}
-	abstract say(): string;
+function add(first: number, second: number): number {
+	return first + second;
 }
 
-class Cat extends Animal {
-	say() {
-		return '야옹';
-	}
+interface IPerson {
+	name: string;
+	age: number;
+	addAge: (first: number, second: number) => number;
 }
 
-class Dog extends Animal {
-	say() {
-		return '멍멍';
-	}
+{
+	type StringAndNumber = (name: string, age: number) => void;
+	const printNameAge: StringAndNumber = (name: string, age: number) => {
+		console.log(name, age);
+	};
+	printNameAge('mijeong', 28);
 }
 
-let animals: Animal[] = [new Cat('야옹이'), new Dog('멍멍이')];
+// default 매개변수
+function addOne(age: number = 10): number {
+	return age + 1;
+}
 
-animals[0].say();
-animals[1].say();
+console.log(addOne(28));
+console.log(addOne());
+// 매개변수와 이름이 같은 이름을 가진 객체의 속성을 만들 수 있다.
+function addOne2(age: number = 10): void {
+	const test = { age };
+	++test.age;
+	console.log(test);
+}
+addOne2();
+
+const addOne3 = (age: number = 10) => ({ age });
+console.log(addOne3(15));
+
+const makeObject = (key: string, value: string) => ({ [key]: value });
+
+console.log(makeObject('mijeongKey', 'mijeongValue'));
