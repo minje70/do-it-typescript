@@ -1,168 +1,88 @@
-import { IPVersion } from 'net';
+import { randomInt } from 'crypto';
 import { range } from './src/range';
-import { fold } from './src/fold';
-import { filter } from './src/filter';
-import { map } from './src/map';
+import { pureDelete } from './src/pureDelete';
 
-// 배열과 튜플
+// 배열의 map, reduce, filter 메서드 구현
+
+// filter
 {
-	const tmpArray = new Array(5);
-	const tmpArray2: number[] = [1, 2, 3, 4];
-	const notArray: { name: string; age?: number } = { name: 'mijeong' };
-	// isArray
-
-	console.log(Array.isArray(tmpArray2), Array.isArray(notArray));
+	const arr: number[] = range(0, 11);
+	// even
+	const evenArr = arr.filter((val) => val % 2 === 0);
+	console.log(evenArr);
 }
 
-// split, join
+// fold 대신 reduce를 사용한다.
 {
-	const tmpString: string = 'h_e_l_l_o';
-	const result = tmpString.split('_');
-	console.log(result);
-
-	const tmpArray = ['h', 'e', 'l', 'l', 'o'];
-	const result2 = tmpArray.join();
-	console.log(result2);
+	const arr: number[] = range(0, 6);
+	const result: number = arr.reduce((result: number, val: number) => {
+		return result + val;
+	}, 0);
+	console.log(`reduce 더하기 : ${result}`);
 }
 
-//비구조화 할당.
+// readonly type 수정자를 사용하는 이유 : class, interface, 함수의 매개변수 등은 let, const로 변수를 선언할 수 없기 때문에
+// readonly를 사용해야한다.
 {
-	const tmpArray: number[] = [1, 2, 3, 4, 5];
-	const [a, b, c, d, e] = tmpArray;
-	console.log(a, b, c, d, e);
-}
-
-// for in 구문
-// 객체에만 할당이 가능하다. 배열도 객체이므로 할당이 가능하다.
-// type을 정의해서 돌리는 경우에 문제가 발생한다.
-// 배열이면 문제가 없는듯
-{
-	const tmpArray = [1, 'mijeong', 28, true];
-	for (const index in tmpArray) {
-		console.log(`for in array : ${tmpArray[index]}`);
-	}
-	for (const item of tmpArray) {
-		console.log(`for of array : ${item}`);
-	}
-	console.log('');
-	// string literal으로 지정이 되니 for in 문 안에서 사용하는 key값들을 'name' | 'age'로 바꿔준다.
-	type objKey = 'name' | 'age';
-	type IPerson = {
+	class Person {
 		name: string;
-		age: number;
-	};
-	const tmpObject: IPerson = { name: 'mijeong', age: 28 };
-	for (const element in tmpObject) {
-		// type IPerson의 name이 string literal로 선언되어있기 때문에 오류가 생긴다.
-		//${tmpObjedct[element]}에서
-		const realElement = element as objKey;
-		console.log(`for in object : ${element} , ${tmpObject[realElement]}`);
-		// console.log(`for in object : ${element}`);
+		readonly age: number;
+		constructor(name: string, age: number) {
+			this.name = name;
+			this.age = age;
+		}
 	}
-	//
-	// for (const item of tmpObject) {
-	// 	console.log(`for of object : ${item}`);
-	// }
 }
 
-// 제네릭 방식의 타입
+// 깊은 복사 테스트
 {
-	const justPrint = <T>(t: T): void => {
-		console.log(t);
+	const object1 = [1, 2, 3, 4];
+	const object2 = [2, 3, 4, 5];
+	const gatheredObject = { object1, object2 };
+	const copiedObject = { ...gatheredObject };
+
+	const printTest = (topic: string) => {
+		console.log(topic);
+		console.log(`object1 : ${object1}`);
+		console.log(`object2 : ${object2}`);
+		console.log(
+			`gatheredObject : ${gatheredObject.object1} , ${gatheredObject.object2}`
+		);
+		console.log(
+			`copiedObject : ${copiedObject.object1} , ${copiedObject.object2}`
+		);
+		console.log('');
 	};
-	const num: number = 100;
-	const str: string = 'hello';
-	const bool: boolean = true;
-	// <타입>을 넣지 않아도 된다. typescript에서 알아서 타입추론을 해준다.
-	justPrint<number>(num);
-	justPrint<string>(str);
-	justPrint(bool);
+	printTest('기본');
+
+	gatheredObject.object1.push(5);
+	printTest('gatherObject의 object1 변경');
+
+	object2.push(6);
+	printTest('그냥 object2 변경');
+	// ...도 내부의 모든 객체가 다 깊은 복사가 되는것은 아니다.
 }
 
-// 명령형 프로그래밍과 선언형 프로그래밍의 차이
-// 숫자 다 더하기.
+// sort 확인
 {
-	const arr = range(0, 100 + 1);
+	const arr = range(0, 11);
+	arr.map((val, index) => {
+		arr[index] = randomInt(10);
+	});
 	console.log(arr);
-	// 명령형
-	let result = 0;
-	for (let i = 0; i < arr.length; ++i) {
-		result += arr[i];
-	}
-	console.log(`명령형 결과 : ${result}`);
-
-	// 선언형
-	result = fold(arr, (result: number, val: number) => result + val, 0);
-	console.log(`선언형 결과 : ${result}`);
+	arr.sort();
+	console.log(arr);
 }
 
-// filter 동작 확인
+// pureDelete 확인
 {
-	const arr = range(0, 101);
-	const resultArr = filter(arr, (val: number) => {
-		if (val % 2 === 0) {
-			return true;
-		} else {
-			return false;
-		}
-	});
-	console.log(`filter 동작 확인 : ${resultArr}`);
+	const arr = range(0, 10);
+	const afterArr = pureDelete(arr, (val) => val % 2 === 0);
+	console.log(`arr : ${arr}`);
+	console.log(`afterArr : ${afterArr}`);
 }
-
-// 홀수의 합 구하기.
+// tuple
 {
-	const arr: number[] = range(0, 101);
-	const oddArr: number[] = filter(arr, (val: number) => {
-		if (val % 2 === 0) {
-			return false;
-		} else {
-			return true;
-		}
-	});
-	const result = fold(
-		oddArr,
-		(result, val) => {
-			return result + val;
-		},
-		0
-	);
-	console.log(`홀수는 : ${oddArr}`);
-	console.log(`홀수의 합 합치기 : ${result}`);
-}
-
-// 짝수의 합 구하기
-{
-	const arr = range(0, 101);
-	const evenArr: number[] = filter(arr, (val) => {
-		if (val % 2 === 0) {
-			return true;
-		}
-		return false;
-	});
-	console.log(
-		fold(
-			evenArr,
-			(result, val) => {
-				return result + val;
-			},
-			0
-		)
-	);
-}
-
-// 맵 테스트
-{
-	const arr = range(0, 101);
-	const mapedArr = map(arr, (val) => {
-		return val * val;
-	});
-	console.log(`mapedArr : ${mapedArr}`);
-	const result = fold(
-		mapedArr,
-		(result, val) => {
-			return result + val;
-		},
-		0
-	);
-	console.log(`fold arr : ${result}`);
+	const tuple: [string, number] = ['mijeong', 28];
+	console.log(tuple);
 }
